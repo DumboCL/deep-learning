@@ -87,15 +87,15 @@ class NeuralNetwork(object):
         output_error_term = error * final_outputs * (1 - final_outputs)
 
         # Calculate the hidden layer's contribution to the error
-        hidden_error = np.dot(self.weights_hidden_to_output, output_error_term)
+        hidden_error = np.dot(output_error_term, self.weights_hidden_to_output)
 
         # Backpropagated error terms, error term for the hidden layer
         hidden_error_term = hidden_error * hidden_outputs * (1 - hidden_outputs)
 
         # Weight step (input to hidden)
-        delta_weights_i_h += self.lr * hidden_error_term * X[:, None]
+        delta_weights_i_h += hidden_error_term * X[:, None]
         # Weight step (hidden to output)
-        delta_weights_h_o += self.lr * output_error_term * hidden_outputs
+        delta_weights_h_o += output_error_term * hidden_outputs[:, None]
 
         return delta_weights_i_h, delta_weights_h_o
 
@@ -109,8 +109,8 @@ class NeuralNetwork(object):
             n_records: number of records
 
         """
-        self.weights_hidden_to_output += delta_weights_h_o  # update hidden-to-output weights with gradient descent step
-        self.weights_input_to_hidden += delta_weights_i_h  # update input-to-hidden weights with gradient descent step
+        self.weights_hidden_to_output += self.lr * delta_weights_h_o / n_records  # update hidden-to-output weights with gradient descent step
+        self.weights_input_to_hidden += self.lr * delta_weights_i_h / n_records  # update input-to-hidden weights with gradient descent step
 
     def run(self, features):
         """ Run a forward pass through the network with input features
@@ -127,18 +127,18 @@ class NeuralNetwork(object):
 
         # Output layer
         final_inputs = np.dot(hidden_outputs, self.weights_hidden_to_output)  # signals into final output layer
-        final_outputs = self.activation_function(final_inputs)  # signals from final output layer
+        final_outputs = final_inputs  # signals from final output layer
         return final_outputs
 
 
 #########################################################
 # Set your hyperparameters here
 ##########################################################
-iterations = 100
-learning_rate = 0.1
-hidden_nodes = 2
-output_nodes = 1
-
+# iterations = 100
+# learning_rate = 0.1
+# hidden_nodes = 2
+# output_nodes = 1
+#
 # test_inputs = np.array([[0.5, -0.2, 0.1]])
 # test_targets = np.array([[0.4]])
 # test_w_i_h = np.array([[0.1, -0.2],
@@ -164,7 +164,9 @@ output_nodes = 1
 #     # return np.allclose(network.weights_hidden_to_output,
 #     # np.array([[0.37275328],
 #     #           [-0.03172939]]))
-#     return network.weights_hidden_to_output
+#     print("weights_hidden_to_output = ", network.weights_hidden_to_output)
+#     print("target = ", np.array([[0.37275328], [-0.03172939]]))
+#
 #     # self.assertTrue(np.allclose(network.weights_input_to_hidden,
 #     # np.array([[0.10562014, -0.20185996],
 #     # [0.39775194, 0.50074398],
@@ -173,4 +175,4 @@ output_nodes = 1
 #
 # if __name__ == '__main__':
 #     print("test_activation = ", test_activation())
-#     print("test_train = ", test_train())
+#     test_train()
